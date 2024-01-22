@@ -19,7 +19,6 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'scipy>=1.4.0',
-        #'hitran-api==1.2.2.1initialXsect @ git+https://github.com/Leberwurscht/hapi.git@initial_Xsect',
         'hitran-api @ git+https://github.com/Leberwurscht/hapi.git@initial_Xsect#egg=hitran-api-1.2.2.1initialXsect',
     ],
     classifiers=[

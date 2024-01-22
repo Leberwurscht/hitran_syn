@@ -3,9 +3,8 @@ Allows to synthesize complex-valued absorption spectra from the hitran database,
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import constants
 
-import joblib
+import joblib # pip install joblib
 memory = joblib.Memory("cache")
 
 import hitran_syn # pip install git+https://gitlab.com/leberwurscht/hitran_syn.git
@@ -22,7 +21,7 @@ def get_data(nu_min, nu_max):
   nu = np.linspace(nu_min,nu_max,25000)
 
   pressure = 101325 # 1 atm in Torr
-  temperature = 273+20 # 20°C in Kelvin
+  temperature = 273.15+20 # 20°C in Kelvin
   fraction = 100e-6 # 100 ppm
   molecule_name = "(12C)H3(16O)H" # ... of methanol
 
