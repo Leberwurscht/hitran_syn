@@ -25,16 +25,17 @@ def profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
   if not YRosen==0: raise NotImplementedError()
 
   difference = Nu-WnGrid-Delta0
-  return Sw * (Gamma0-1j*difference)/np.pi / (difference**2 + Gamma0**2)
+  return Sw * (Gamma0+1j*difference)/np.pi / (difference**2 + Gamma0**2)
 
 def profile_TwosidedComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
-  if not YRosen==0: raise NotImplementedError()
-
-  return profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen,Sw) + profile_ComplexLorentz(-Nu,Gamma0,Delta0,WnGrid,YRosen,Sw).conj()
+  return profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen,Sw) + profile_ComplexLorentz(-Nu,Gamma0,Delta0,WnGrid,YRosen,Sw)
 
 def profile_ComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
     re, im = hapi.pcqsdhc(Nu,GammaD,Gamma0,0j,Delta0,0j,0j,0j,WnGrid,YRosen)
-    return Sw*(re + 1j*im)
+    return Sw*(re - 1j*im)
+
+def profile_TwosidedComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
+  return profile_ComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen,Sw) + profile_ComplexVoigt(-Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen,Sw)
 
 def absorptionCoefficient_ComplexLorentz(*args, WavenumberGrid=None, **kwargs):
   return absorptionCoefficient_Generic(*args, **kwargs,
@@ -53,6 +54,13 @@ def absorptionCoefficient_TwosidedComplexLorentz(*args, WavenumberGrid=None, **k
 def absorptionCoefficient_ComplexVoigt(*args, WavenumberGrid=None, **kwargs):
   return absorptionCoefficient_Generic(*args, **kwargs,
     profile=profile_ComplexVoigt,
+    calcpars=hapi.calculateProfileParametersVoigt,
+    WavenumberGrid=WavenumberGrid,
+    initial_Xsect=np.zeros(WavenumberGrid.size, complex))
+
+def absorptionCoefficient_TwosidedComplexVoigt(*args, WavenumberGrid=None, **kwargs):
+  return absorptionCoefficient_Generic(*args, **kwargs,
+    profile=profile_TwosidedComplexVoigt,
     calcpars=hapi.calculateProfileParametersVoigt,
     WavenumberGrid=WavenumberGrid,
     initial_Xsect=np.zeros(WavenumberGrid.size, complex))
