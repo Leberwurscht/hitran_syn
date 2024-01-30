@@ -157,41 +157,90 @@ def line_data(*args, calpars=hapi.calculateProfileParametersLorentz, raw=False, 
   strengths = np.array([i[0]*i[1]['Sw'] for i in lines]) * constants.c*1e-2**-1
   nu0s = np.array([i[1]['Nu']*constants.c*1e-2**-1 for i in lines])
   widths = np.array([i[1]['Gamma0']*constants.c*1e-2**-1 for i in lines])
+  widths_doppler = np.array([i[1].get('GammaD', 0)*constants.c*1e-2**-1 for i in lines])
+  delta_nu0s = -np.array([i[1].get('Delta0', 0)*constants.c*1e-2**-1 for i in lines])
 
-  return strengths, nu0s, widths
+  return strengths, nu0s, widths, delta_nu0s, widths_doppler
 
-def reallorentz_frequencydomain(nu,nu0,width):
-  return width/np.pi / ((nu-nu0)**2 + width**2 )
+try:
+  import jax
+  from . import lpf
+except:
+  pass
+else:
+  fwhm_factor = 1/2/np.sqrt(np.log(np.sqrt(2)))
+  def profile_jaxComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
+    return lpf.cvoigt(WnGrid-Nu+Delta0, fwhm_factor*GammaD, Gamma0).conj() * Sw
 
-def imaglorentz_frequencydomain(nu,nu0,width):
-  return -(nu-nu0)/np.pi / ((nu-nu0)**2 + width**2 )
+  batched_profile_jaxComplexVoigt = jax.numpy.vectorize(profile_jaxComplexVoigt, signature="(),(),(),(),(i),(),()->(i)")
 
-def complexlorentz_frequencydomain(nu,nu0,width):
-  return (width-1j*(nu-nu0))/np.pi / ((nu-nu0)**2 + width**2 )
+  @jax.jit
+  def batched_profile_jaxComplexVoigt_sum(*args):
+    return batched_profile_jaxComplexVoigt(*args).sum(axis=0)
 
-def reallorentz_timedomain(t,nu0,width):
-  return np.exp(-2*np.pi*width*abs(t)) * np.exp(1j*2*np.pi*nu0*t)
+  def absorptionCoefficient_jaxComplexVoigt(*args, WavenumberGrid=None, batchsize=100, **kwargs):
+    _, mu = linedata_backend(
+      *args,
+      WavenumberGrid=WavenumberGrid,
+      calpars=hapi.calculateProfileParametersVoigt,
+      **kwargs
+    )
 
-def complexlorentz_timedomain(t,nu0,width):
-  return 2*np.exp(-2*np.pi*width*t) * np.exp(1j*2*np.pi*nu0*t) * (t>=0)
+    lines = mu.lines
 
-def twosided_reallorentz_frequencydomain(nu,nu0,width):
-  return reallorentz_frequencydomain(nu,nu0,width) + reallorentz_frequencydomain(-nu,nu0,width)
+    combinedSw = np.array([i[0]*i[1]['Sw'] for i in lines])
+    Nu = np.array([i[1]['Nu'] for i in lines])
+    Gamma0 = np.array([i[1]['Gamma0'] for i in lines])
+    GammaD = np.array([i[1].get('GammaD', 0) for i in lines])
+    Delta0 = -np.array([i[1].get('Delta0', 0) for i in lines])
 
-def twosided_imaglorentz_frequencydomain(nu,nu0,width):
-  return imaglorentz_frequencydomain(nu,nu0,width) - imaglorentz_frequencydomain(-nu,nu0,width)
+    Npad = int(np.ceil(Nu.size/batchsize))*batchsize - Nu.size
 
-def twosided_complexlorentz_frequencydomain(nu,nu0,width):
-  return complexlorentz_frequencydomain(nu,nu0,width) + complexlorentz_frequencydomain(-nu,nu0,width).conj()
+    combinedSw = np.concatenate((combinedSw, np.zeros(Npad)))
+    Nu = np.concatenate((Nu, np.ones(Npad)))
+    Gamma0 = np.concatenate((Gamma0, np.ones(Npad)))
+    GammaD = np.concatenate((GammaD, np.ones(Npad)))
+    Delta0 = np.concatenate((Delta0, np.ones(Npad)))
 
-def twosided_reallorentz_timedomain(t,nu0,width):
-  return 2*np.exp(-2*np.pi*width*abs(t)) * np.cos(2*np.pi*nu0*t)
+    spec = 0
+    for i in range(0,Nu.size,batchsize):
+      print(i)
+      spec = spec + batched_profile_jaxComplexVoigt_sum(Nu[i:i+batchsize,None],GammaD[i:i+batchsize,None],Gamma0[i:i+batchsize,None],Delta0[i:i+batchsize,None],WavenumberGrid[None,:],0.0,combinedSw[i:i+batchsize,None]).ravel()
 
-def twosided_complexlorentz_timedomain(t,nu0,width):
-  return 4*np.exp(-2*np.pi*width*t) * np.cos(2*np.pi*nu0*t) * (t>=0)
+    return WavenumberGrid, spec
 
-def compose_lorentzians(axis, strengths, nu0s, widths, backend=reallorentz_frequencydomain):
-  ret = 0
-  for strength, nu0, width in zip(strengths, nu0s, widths):
-    ret = ret + strength*backend(axis, nu0, width)
-  return ret
+#def reallorentz_frequencydomain(nu,nu0,width):
+#  return width/np.pi / ((nu-nu0)**2 + width**2 )
+#
+#def imaglorentz_frequencydomain(nu,nu0,width):
+#  return -(nu-nu0)/np.pi / ((nu-nu0)**2 + width**2 )
+#
+#def complexlorentz_frequencydomain(nu,nu0,width):
+#  return (width-1j*(nu-nu0))/np.pi / ((nu-nu0)**2 + width**2 )
+#
+#def reallorentz_timedomain(t,nu0,width):
+#  return np.exp(-2*np.pi*width*abs(t)) * np.exp(1j*2*np.pi*nu0*t)
+#
+#def complexlorentz_timedomain(t,nu0,width):
+#  return 2*np.exp(-2*np.pi*width*t) * np.exp(1j*2*np.pi*nu0*t) * (t>=0)
+#
+#def twosided_reallorentz_frequencydomain(nu,nu0,width):
+#  return reallorentz_frequencydomain(nu,nu0,width) + reallorentz_frequencydomain(-nu,nu0,width)
+#
+#def twosided_imaglorentz_frequencydomain(nu,nu0,width):
+#  return imaglorentz_frequencydomain(nu,nu0,width) - imaglorentz_frequencydomain(-nu,nu0,width)
+#
+#def twosided_complexlorentz_frequencydomain(nu,nu0,width):
+#  return complexlorentz_frequencydomain(nu,nu0,width) + complexlorentz_frequencydomain(-nu,nu0,width).conj()
+#
+#def twosided_reallorentz_timedomain(t,nu0,width):
+#  return 2*np.exp(-2*np.pi*width*abs(t)) * np.cos(2*np.pi*nu0*t)
+#
+#def twosided_complexlorentz_timedomain(t,nu0,width):
+#  return 4*np.exp(-2*np.pi*width*t) * np.cos(2*np.pi*nu0*t) * (t>=0)
+#
+#def compose_profiles(axis, strengths, nu0s, widths, delta_nu0s=0, widths_doppler=0, backend=reallorentz_frequencydomain):
+#  ret = 0
+#  for strength, nu0, width in zip(strengths, nu0s, widths):
+#    ret = ret + strength*backend(axis, nu0, width)
+#  return ret
