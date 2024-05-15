@@ -1,5 +1,23 @@
 Allows to synthesize complex-valued absorption spectra from the hitran database, using HAPI.
 
+Installation
+------------
+
+In case you are using Windows: Previous to executing the commands below, install Anaconda, open Anaconda prompt and run `conda install git`. Then execute the command below also from Anaconda prompt.
+
+Use pip to install this package:
+
+```bash
+pip uninstall hitran-api
+pip install git+https://gitlab.com/leberwurscht/hitran_syn.git
+pip install joblib
+```
+
+The first line will uninstall the official version of `hitran-api` (HAPI), because `hitran_syn` needs a custom version of it. The second line will install `hitran_syn` with its dependencies (also the custom version of HAPI). The third line will install joblib, which is needed to run the example below.
+
+Example
+-------
+
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
