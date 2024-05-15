@@ -1,9 +1,11 @@
-Allows to synthesize complex-valued absorption spectra from the hitran database, using HAPI.
+Allows to synthesize complex-valued absorption spectra (i.e., intensity and phase) from the hitran database for different pressures/temperatures accounting for pressure and Doppler broadening, using HAPI. List of supported molecules: <https://hitran.org/lbl/>.
+
+Uses JAX for acceleration if it is installed. Keep in mind that if you use a GPU, single precision is the default. Switching to double precision is recommended (`import jax; jax.config.update("jax_enable_x64", True)` at the beginning of your script, or set the environement variable `JAX_ENABLE_X64=True`).
 
 Installation
 ------------
 
-In case you are using Windows: Previous to executing the commands below, install Anaconda, open Anaconda prompt and run `conda install git`. Then execute the command below also from Anaconda prompt.
+In case you are using Windows: Previous to executing the commands below, install Anaconda, open Anaconda prompt and run `conda install git`. Then execute the commands below also from Anaconda prompt.
 
 Use pip to install this package:
 
@@ -13,7 +15,7 @@ pip install git+https://gitlab.com/leberwurscht/hitran_syn.git
 pip install joblib
 ```
 
-The first line will uninstall the official version of `hitran-api` (HAPI), because `hitran_syn` needs a custom version of it. The second line will install `hitran_syn` with its dependencies (also the custom version of HAPI). The third line will install joblib, which is needed to run the example below.
+The first line will uninstall the official version of `hitran-api` (HAPI), because `hitran_syn` needs a custom version of it (see <https://github.com/hitranonline/hapi/pull/49>). The second line will install `hitran_syn` with its dependencies (also the custom version of HAPI). The third line will install joblib, which is needed to run the example below.
 
 Example
 -------
