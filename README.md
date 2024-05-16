@@ -1,6 +1,7 @@
 Allows to synthesize complex-valued absorption spectra (i.e., intensity and phase) from the hitran database for different pressures/temperatures accounting for pressure and Doppler broadening, using HAPI. List of supported molecules: <https://hitran.org/lbl/>.
 
-Uses JAX for acceleration if it is installed. Keep in mind that if you use a GPU, single precision is the default. Switching to double precision is recommended (`import jax; jax.config.update("jax_enable_x64", True)` at the beginning of your script, or set the environement variable `JAX_ENABLE_X64=True`).
+Uses JAX for acceleration if it is installed. Keep in mind that if you use a GPU, single precision is the default. Switching to double precision is recommended (`import jax; jax.config.update("jax_enable_x64", True)` at the beginning of your script, or set the environement variable `JAX_ENABLE_X64=True`). The JAX functions for the complex Voigt profiles were taken from the [https://github.com/HajimeKawahara/exojax](exojax) library.
+
 
 Installation
 ------------
