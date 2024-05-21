@@ -54,13 +54,16 @@ def get_data(nu_min, nu_max):
 nu, gamma = get_data(20e12, 40e12)
 sample_length = 1 # in meters
 transmission_coefficient = np.exp(-gamma*sample_length)
+absorbance = -np.log10(abs(transmission_coefficient)**2)
 
 fig = plt.figure(constrained_layout=True)
 gs = fig.add_gridspec(2,1)
 ax = fig.add_subplot(gs[0,0])
-ax.plot(nu/1e12, abs(transmission_coefficient)**2 /  1e-2)
+#ax.plot(nu/1e12, abs(transmission_coefficient)**2 /  1e-2)
+#ax.set_ylabel(r"PSD$_\mathrm{out}$/PSD$_\mathrm{in}$ (%)")
+ax.plot(nu/1e12, absorbance)
+ax.set_ylabel(r"absorbance (OD)")
 ax.set_xlabel("optical frequency (THz)")
-ax.set_ylabel(r"PSD$_\mathrm{out}$/PSD$_\mathrm{in}$ (%)")
 ax = fig.add_subplot(gs[1,0])
 ax.plot(nu/1e12, np.angle(transmission_coefficient))
 ax.set_xlabel("optical frequency (THz)")
