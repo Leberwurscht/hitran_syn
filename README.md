@@ -54,16 +54,20 @@ def get_data(nu_min, nu_max):
 nu, gamma = get_data(20e12, 40e12)
 sample_length = 1 # in meters
 transmission_coefficient = np.exp(-gamma*sample_length)
-absorbance = -np.log10(abs(transmission_coefficient)**2)
 
 fig = plt.figure(constrained_layout=True)
 gs = fig.add_gridspec(2,1)
 ax = fig.add_subplot(gs[0,0])
-#ax.plot(nu/1e12, abs(transmission_coefficient)**2 /  1e-2)
-#ax.set_ylabel(r"PSD$_\mathrm{out}$/PSD$_\mathrm{in}$ (%)")
-ax.plot(nu/1e12, absorbance)
-ax.set_ylabel(r"absorbance (OD)")
+ax.plot(nu/1e12, abs(transmission_coefficient)**2 /  1e-2)
+ax.set_ylabel(r"PSD$_\mathrm{out}$/PSD$_\mathrm{in}$ (%)")
+## or plot absorbance instead:
+#absorbance = -np.log10(abs(transmission_coefficient)**2)
+#ax.plot(nu/1e12, absorbance)
+#ax.set_ylabel(r"absorbance (OD)")
 ax.set_xlabel("optical frequency (THz)")
+c = 299792458.0 # or: from scipy.constants import c
+ax2 = ax.secondary_xaxis("top", functions=(lambda nu_THz: nu_THz*1e12/c/1e-2**-1, lambda nutilde_invcm: nutilde_invcm*1e-2**-1*c/1e12))
+ax2.set_xlabel("wavenumber (cm$^{-1}$)")
 ax = fig.add_subplot(gs[1,0])
 ax.plot(nu/1e12, np.angle(transmission_coefficient))
 ax.set_xlabel("optical frequency (THz)")
