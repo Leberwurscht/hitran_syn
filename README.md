@@ -47,6 +47,10 @@ def get_data(nu_min, nu_max):
   molecule_name = "(12C)H3(16O)H" # ... of methanol
 
   gamma = hitran_syn.propagation_coefficient(molecule_name,nu,total_pressure=pressure,partial_pressure=fraction*pressure,temperature=temperature)
+  #for Voigt instead of Lorentz profile: replace by
+  #  gamma = hitran_syn.propagation_coefficient(molecule_name,nu,total_pressure=pressure,partial_pressure=fraction*pressure,temperature=temperature,backend=hitran_syn.absorptionCoefficient_ComplexVoigt)
+  #for Voigt profile accelerated by JAX: replace by
+  #  gamma = hitran_syn.propagation_coefficient(molecule_name,nu,total_pressure=pressure,partial_pressure=fraction*pressure,temperature=temperature,backend=hitran_syn.absorptionCoefficient_jaxComplexVoigt)
 
   return nu, gamma
 
@@ -63,7 +67,7 @@ ax.set_ylabel(r"PSD$_\mathrm{out}$/PSD$_\mathrm{in}$ (%)")
 ## or plot absorbance instead:
 #absorbance = -np.log10(abs(transmission_coefficient)**2)
 #ax.plot(nu/1e12, absorbance)
-#ax.set_ylabel(r"absorbance (OD)")
+#ax.set_ylabel("absorbance (OD)")
 ax.set_xlabel("optical frequency (THz)")
 c = 299792458.0 # or: from scipy.constants import c
 ax2 = ax.secondary_xaxis("top", functions=(lambda nu_THz: nu_THz*1e12/c/1e-2**-1, lambda nutilde_invcm: nutilde_invcm*1e-2**-1*c/1e12))
@@ -76,6 +80,27 @@ ax.set_ylabel("spectral phase change (rad)")
 fig.suptitle("transmission through {} meters of 100 ppm methanol at 1 atm, 20°C".format(sample_length))
 plt.savefig("output.png")
 plt.show()
+
+### plot time domain
+#import fwhm # pip install git+https://gitlab.com/leberwurscht/fwhm.git
+#import fourioso # pip install git+https://gitlab.com/leberwurscht/fourioso.git
+#
+#excitation_fwhm = 30e-15 # exitation pulse duration (seconds)
+#t = fourioso.itransform(nu - nu[nu.size//2])
+#envelope = fwhm.gaussian(t + t.ptp()*.45, fwhm=excitation_fwhm)
+#Af = fourioso.transform(t, envelope, return_axis=False) # complex amplitude spectrum
+#Af_after = Af*transmission_coefficient
+#envelope_after = fourioso.itransform(nu - nu[nu.size//2], Af_after, return_axis=False)
+#
+#plt.figure()
+#plt.plot(t/1e-12, abs(envelope)/abs(envelope).max(), 'k', label="before sample")
+#plt.plot(t/1e-12, abs(envelope_after)/abs(envelope).max(), 'r', label="after sample")
+#plt.yscale("log")
+#plt.ylim((10**-6.5,1))
+#plt.legend()
+#plt.xlabel("t (ps)")
+#plt.ylabel("amplitude (arb. u.)")
+#plt.show()
 ```
 
 ![Output](output.png)

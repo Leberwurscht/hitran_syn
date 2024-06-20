@@ -71,9 +71,11 @@ def intensity_absorption_coefficient(molecule_name, nu, partial_pressure=101325,
 
     molecule_name (string): an entry from `available_molecules`
     nu (1d ndarray): optical frequency grid, in Hz
-    partial_pressure of species specified by `molecule name`: total pressure in Pascal (defaults to 101325 Pa = 1 atm)
-    total_pressure: total pressure in Pascal (defaults to 101325 Pa = 1 atm)
-    temperature: temperature in Kelvin (defaults to 293.15, i.e., 20°C)
+    partial_pressure (float): partial pressure of species specified by
+      `molecule_name` in Pascal (defaults to 101325 Pa = 1 atm)
+    total_pressure (float): total pressure in Pascal
+      (defaults to 101325 Pa = 1 atm)
+    temperature (float): temperature in Kelvin (defaults to 293.15, i.e., 20°C)
   """
 
   if molecule_name not in available_molecules: raise ValueError("molecule_name {} not available, see `available_molecules` for a list".format(molecule_name))
