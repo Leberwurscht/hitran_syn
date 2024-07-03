@@ -19,7 +19,7 @@ def download_hitran_data(molecule_name, db_path=_default_db_path):
   except ValueError: raise Exception("invalid molecule name (check `available_molecules`)")
   M, I, _, _, _, _ = table_entry
 
-  hapi.fetch(molecule_name,M,I,0,1e10)
+  hapi.fetch(molecule_name,M,I,0,1e10,ParameterGroups=["Voigt_Air", "Voigt_Self"])
 
 def profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
   if not YRosen==0: raise NotImplementedError()

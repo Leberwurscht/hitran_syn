@@ -88,9 +88,9 @@ plt.show()
 #excitation_fwhm = 30e-15 # exitation pulse duration (seconds)
 #t = fourioso.itransform(nu - nu[nu.size//2])
 #envelope = fwhm.gaussian(t + t.ptp()*.45, fwhm=excitation_fwhm)
-#Af = fourioso.transform(t, envelope, return_axis=False) # complex amplitude spectrum
-#Af_after = Af*transmission_coefficient
-#envelope_after = fourioso.itransform(nu - nu[nu.size//2], Af_after, return_axis=False)
+#Anu = fourioso.transform(t, envelope, return_axis=False) # complex amplitude spectrum
+#Anu_after = Anu*transmission_coefficient
+#envelope_after = fourioso.itransform(nu - nu[nu.size//2], Anu_after, return_axis=False)
 #
 #plt.figure()
 #plt.plot(t/1e-12, abs(envelope)/abs(envelope).max(), 'k', label="before sample")
