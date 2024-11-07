@@ -3,23 +3,24 @@ import os, functools
 import numpy as np
 from scipy import constants
 
-import hapi
+import hapi_initialXsectfork as hapi
 
-from hapi import absorptionCoefficient_Generic, absorptionCoefficient_Priority, absorptionCoefficient_HT, absorptionCoefficient_SDVoigt, absorptionCoefficient_Voigt, absorptionCoefficient_Lorentz, absorptionCoefficient_Doppler
+from hapi_initialXsectfork import absorptionCoefficient_Generic, absorptionCoefficient_Priority, absorptionCoefficient_HT, absorptionCoefficient_SDVoigt, absorptionCoefficient_Voigt, absorptionCoefficient_Lorentz, absorptionCoefficient_Doppler
 
 _default_db_path = os.path.join(os.path.expanduser("~"), "hitran-database")
 
 available_molecules = [i[2] for i in hapi.ISO_ID.values()]
 
-def download_hitran_data(molecule_name, db_path=_default_db_path):
-  hapi.db_begin(db_path)
+def download_hitran_data(molecule_name, db_path=_default_db_path, voigt_params=True):
+  hapi.db_begin(os.path.join(db_path, "voigt" if voigt_params else "novoigt"))
   if molecule_name in hapi.getTableList(): return
 
   try: table_entry, = filter(lambda i: i[2]==molecule_name, hapi.ISO_ID.values())
   except ValueError: raise Exception("invalid molecule name (check `available_molecules`)")
   M, I, _, _, _, _ = table_entry
 
-  hapi.fetch(molecule_name,M,I,0,1e10,ParameterGroups=["Voigt_Air", "Voigt_Self"])
+  if voigt_params: hapi.fetch(molecule_name,M,I,0,1e10,ParameterGroups=["160-char","Voigt_Air", "Voigt_Self"])
+  else: hapi.fetch(molecule_name,M,I,0,1e10)
 
 def profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
   if not YRosen==0: raise NotImplementedError()
@@ -31,8 +32,8 @@ def profile_TwosidedComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
   return profile_ComplexLorentz(Nu,Gamma0,Delta0,WnGrid,YRosen,Sw) + profile_ComplexLorentz(-Nu,Gamma0,Delta0,WnGrid,YRosen,Sw)
 
 def profile_ComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
-    re, im = hapi.pcqsdhc(Nu,GammaD,Gamma0,0j,Delta0,0j,0j,0j,WnGrid,YRosen)
-    return Sw*(re - 1j*im)
+  re, im = hapi.pcqsdhc(Nu,GammaD,Gamma0,0j,Delta0,0j,0j,0j,WnGrid,YRosen)
+  return Sw*(re - 1j*im)
 
 def profile_TwosidedComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen=0.0,Sw=1.0):
   return profile_ComplexVoigt(Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen,Sw) + profile_ComplexVoigt(-Nu,GammaD,Gamma0,Delta0,WnGrid,YRosen,Sw)
@@ -65,7 +66,7 @@ def absorptionCoefficient_TwosidedComplexVoigt(*args, WavenumberGrid=None, **kwa
     WavenumberGrid=WavenumberGrid,
     initial_Xsect=np.zeros(WavenumberGrid.size, complex))
 
-def intensity_absorption_coefficient(molecule_name, nu, partial_pressure=101325, total_pressure=101325, temperature=293.15, backend=absorptionCoefficient_Lorentz, db_path=_default_db_path, wings_approximation=False):
+def intensity_absorption_coefficient(molecule_name, nu, partial_pressure=101325, total_pressure=101325, temperature=293.15, backend=absorptionCoefficient_Lorentz, db_path=_default_db_path, wings_approximation=False, voigt_params=True):
   """
     Returns the real-valued quantity mu in I_out = exp(-mu*z) I_in, where I_out/I_in are the intensity spectra.
 
@@ -76,11 +77,12 @@ def intensity_absorption_coefficient(molecule_name, nu, partial_pressure=101325,
     total_pressure (float): total pressure in Pascal
       (defaults to 101325 Pa = 1 atm)
     temperature (float): temperature in Kelvin (defaults to 293.15, i.e., 20°C)
+    voigt_params: whether to download voigt parameters (might result in missing lines where no data is available)
   """
 
   if molecule_name not in available_molecules: raise ValueError("molecule_name {} not available, see `available_molecules` for a list".format(molecule_name))
 
-  download_hitran_data(molecule_name, db_path=db_path)
+  download_hitran_data(molecule_name, db_path=db_path, voigt_params=voigt_params)
 
   fraction = partial_pressure/total_pressure
 

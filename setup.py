@@ -19,7 +19,7 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'scipy>=1.4.0',
-        'hitran-api @ git+https://github.com/Leberwurscht/hapi.git@initial_Xsect#egg=hitran-api-1.2.2.1initialXsect',
+        'hapi_initialXsectfork @ git+https://gitlab.com/leberwurscht/hapi_initialXsectfork.git@initialXsectfork',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

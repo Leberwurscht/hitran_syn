@@ -1,6 +1,6 @@
 Allows to synthesize complex-valued absorption spectra (i.e., intensity and phase) from the hitran database for different pressures/temperatures accounting for pressure and Doppler broadening, using HAPI. List of supported molecules: <https://hitran.org/lbl/>.
 
-Uses JAX for acceleration if it is installed. Keep in mind that if you use a GPU, single precision is the default. Switching to double precision is recommended (`import jax; jax.config.update("jax_enable_x64", True)` at the beginning of your script, or set the environement variable `JAX_ENABLE_X64=True`). The JAX functions for the complex Voigt profiles were taken from the [exojax](https://github.com/HajimeKawahara/exojax) library.
+Can use JAX for GPU acceleration. Keep in mind that if you use a GPU, single precision is the default. Switching to double precision is recommended (`import jax; jax.config.update("jax_enable_x64", True)` at the beginning of your script, or set the environement variable `JAX_ENABLE_X64=True`). The JAX functions for the complex Voigt profiles were taken from the [exojax](https://github.com/HajimeKawahara/exojax) library.
 
 
 Installation
@@ -41,7 +41,7 @@ print()
 def get_data(nu_min, nu_max):
   nu = np.linspace(nu_min,nu_max,25000)
 
-  pressure = 101325 # 1 atm in Torr
+  pressure = 101325 # 1 atm in Pascal
   temperature = 273.15+20 # 20°C in Kelvin
   fraction = 100e-6 # 100 ppm
   molecule_name = "(12C)H3(16O)H" # ... of methanol
