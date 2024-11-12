@@ -12,6 +12,8 @@ _default_db_path = os.path.join(os.path.expanduser("~"), "hitran-database")
 available_molecules = [i[2] for i in hapi.ISO_ID.values()]
 
 def download_hitran_data(molecule_name, db_path=_default_db_path, voigt_params=True):
+  if not os.path.exists(db_path): os.makedirs(db_path, exist_ok=True)
+
   hapi.db_begin(os.path.join(db_path, "voigt" if voigt_params else "novoigt"))
   if molecule_name in hapi.getTableList(): return
 
