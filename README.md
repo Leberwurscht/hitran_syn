@@ -11,12 +11,11 @@ In case you are using Windows: Previous to executing the commands below, install
 Use pip to install this package:
 
 ```bash
-pip uninstall hitran-api
 pip install git+https://gitlab.com/leberwurscht/hitran_syn.git
 pip install joblib
 ```
 
-The first line will uninstall the official version of `hitran-api` (HAPI), because `hitran_syn` needs a custom version of it (see <https://github.com/hitranonline/hapi/pull/49>). The second line will install `hitran_syn` with its dependencies (also the custom version of HAPI). The third line will install joblib, which is needed to run the example below.
+The first line will install `hitran_syn`, and also the dependency `hapi_initialXsectfork` which is a fork of `hitran-api` (HAPI, for the relevant change of the fork versus the official version see <https://github.com/hitranonline/hapi/pull/49>). The second line will install joblib, which is needed to run the example below.
 
 Example
 -------
