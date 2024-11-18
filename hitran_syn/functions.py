@@ -215,6 +215,11 @@ else:
 
     return WavenumberGrid, spec
 
+def relative_humidity_to_partial_pressure(relative_humidity,temperature=273.15+20,pressure=101325):
+  vapour_pressure = 10**(8.07131 - 1730.63/(233.426+temperature-273.15)) * 133.3224 # Antoine equation
+  partial_pressure_water = relative_humidity*vapour_pressure
+  return partial_pressure_water
+
 #def reallorentz_frequencydomain(nu,nu0,width):
 #  return width/np.pi / ((nu-nu0)**2 + width**2 )
 #
